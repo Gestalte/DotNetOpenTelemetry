@@ -12,15 +12,17 @@ namespace TracingShimConsole
             // Enable OpenTelemetry for the source "MyCompany.MyProduct.MyWebServer"
             // and use a single pipeline with a custom MyProcessor, and Console exporter.
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddSource("MyCompany.MyProduct.MyWebServer")
-                .ConfigureResource(r => r.AddService("MyServiceName"))
+                .AddSource("OpenTelemetryApi.Source")
+                .ConfigureResource(r => r.AddService("OpenTelemetryApi.Service"))
                 .AddConsoleExporter(options => options.Targets = ConsoleExporterOutputTargets.Debug | ConsoleExporterOutputTargets.Console)
+                // docker run --rm -it -p 18888:18888 -p 4317:18889 --name aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+                .AddOtlpExporter(config => config.Endpoint = new Uri("http://localhost:4317"))
                 .Build();
 
             // The above line is required only in applications
             // which decide to use OpenTelemetry.
 
-            var tracer = TracerProvider.Default.GetTracer("MyCompany.MyProduct.MyWebServer","1.2.3.4");
+            var tracer = TracerProvider.Default.GetTracer("OpenTelemetryApi.Source", "1.2.3.4");
             using (var parentSpan = tracer.StartActiveSpan("parent span"))
             {
                 parentSpan.SetAttribute("mystring", "value");

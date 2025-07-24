@@ -1,5 +1,6 @@
 ﻿using OpenTelemetry;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
 
@@ -7,13 +8,15 @@ namespace ActivitySourceConsole
 {
     internal class Program
     {
-        private readonly static ActivitySource activitySource = new("MyCompany.MyProduct.MyLibrary", "1.0.0");
+        private readonly static ActivitySource activitySource = new("DotNetActivityAPI.Source", "1.0.0");
 
         static void Main()
         {
             _ = Sdk.CreateTracerProviderBuilder()
-                .AddSource("MyCompany.MyProduct.MyLibrary")
-                 .AddConsoleExporter(options => options.Targets = ConsoleExporterOutputTargets.Debug | ConsoleExporterOutputTargets.Console)
+                .AddSource("DotNetActivityAPI.Source")
+                .ConfigureResource(r => r.AddService("DotNetActivityAPI.Service"))
+                .AddConsoleExporter(options => options.Targets = ConsoleExporterOutputTargets.Debug | ConsoleExporterOutputTargets.Console)
+                .AddOtlpExporter(config => config.Endpoint = new Uri("http://localhost:4317"))
                 .Build();
 
             var activity = activitySource.StartActivity("ActivityName");
